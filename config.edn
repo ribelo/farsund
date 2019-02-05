@@ -1,0 +1,56 @@
+{:market/id               "f01450"
+ :market/collector-path   "./"
+ :market/report-path      "/home/ribelo/sync/schowek/rk/zamowienie.xls"
+ :market/data-path        "/home/ribelo/s3-dane"
+ :market/invoices-path    "/home/ribelo/s3-faktury"
+ ;:firebase/credentials    "firebase_credentials.json"
+ :pubsub/channel          {}
+ :pubsub/publisher        {:chan  #ig/ref :pubsub/channel
+                           :topic :event}
+ ;226.25
+ ;02
+ :farsund/db              {}
+ ;:farsund/firestore       {:credentials #ig/ref :firebase/credentials}
+ :farsund/invoice-watcher {:chan              #ig/ref :pubsub/channel
+                           :pub               #ig/ref :pubsub/publisher
+                           :market-id         #ig/ref :market/id
+                           :db                #ig/ref :farsund/db
+                           ;:firestore         #ig/ref :farsund/firestore
+                           :max-age-in-days   7
+                           :delete-old-files? false
+                           :invoices-path     #ig/ref :market/invoices-path
+                           :mask              "^DW_"}
+ :farsund/market-watcher  {:chan         #ig/ref :pubsub/channel
+                           :pub          #ig/ref :pubsub/publisher
+                           :market-id    #ig/ref :market/id
+                           :db           #ig/ref :farsund/db
+                           ;:firestore    #ig/ref :farsund/firestore
+                           :days-to-read 180
+                           :report-path  #ig/ref :market/report-path
+                           :data-path    #ig/ref :market/data-path}
+ :farsund/cg              {:db  #ig/ref :farsund/db
+                           :ftp #ig/ref :farsund/ftp}
+ :farsund/estimator       {:chan      #ig/ref :pubsub/channel
+                           :pub       #ig/ref :pubsub/publisher
+                           :market-id #ig/ref :market/id
+                           ;:firestore #ig/ref :farsund/firestore
+                           :db        #ig/ref :farsund/db}
+ :farsund/handler         {:routes #ig/ref :farsund/routes}
+ :farsund/routes          {:db    #ig/ref :farsund/db
+                           :sente #ig/ref :farsund/sente}
+ :farsund/sente           {:chan           #ig/ref :pubsub/channel
+                           :pub            #ig/ref :pubsub/publisher
+                           :db             #ig/ref :farsund/db
+                           :ftp-config     #ig/ref :farsund/ftp
+                           :collector-path #ig/ref :market/collector-path}
+ :farsund/webserver       {:host    "0.0.0.0"
+                           :port    3000
+                           :handler #ig/ref :farsund/handler}
+ :farsund/nrepl           {:port 7000}
+ :farsund/timbre          {:level :info}
+ :farsund/ftp             {:address  "37.128.57.14"
+                           :port     "21"
+                           :user     "sente"
+                           :password "xse45tgv"
+                           :out-path "s3-out"
+                           :in-path  "s3-in"}}
