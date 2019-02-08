@@ -1,4 +1,4 @@
-(defproject farsund "0.4.0-SNAPSHOT"
+(defproject farsund "0.4.1-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -36,14 +36,8 @@
                  [com.github.haifengl/smile-core "1.5.2"]
                  [ribelo/visby "0.1.1-SNAPSHOT"]
                  [ribelo/wombat "0.1.1-SNAPSHOT"]
-                 ;[com.google.firebase/firebase-admin "6.7.0"
-                  ;:exclusions [io.grpc/grpc-netty-shaded
-                  ;             com.google.protobuf/protobuf-java]
-                  ;]
-                 ;[io.grpc/grpc-netty-shaded "1.16.1"]
-                 ;[com.google.protobuf/protobuf-java "3.6.1"]
-                 ;[org.clojure/java.jdbc "0.7.8"]
-                 ]
+                 [tech.tablesaw/tablesaw-core "0.30.2"]
+                 [techascent/tech.ml-base "3.5"]]
   ;:jvm-opts ["-server" "-Xmx1024m"]
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
@@ -56,4 +50,5 @@
                        :aot          :all
                        :uberjar-name "farsund.jar"}
              :prod    {:source-paths ["env/prod/clj"]}
-             :dev     {:source-paths ["env/dev/clj"]}})
+             :dev     {:source-paths ["env/dev/clj"]
+                       :dependencies [[criterium "0.4.4"]]}})

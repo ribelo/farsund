@@ -59,10 +59,12 @@
 
 (defmethod ws/event-msg-handler :sync/ftp->collector
   [{:keys [collector-path ftp-config]} {:keys [?reply-fn] event-id :id file-name :?data}]
+  (println :sync/ftp->collector)
   (let [edi (cg/get-mm-from-ftp ftp-config file-name)
         csv (-> edi
                 (cg/edi->document)
                 (docs/document->csv))]
+    (println csv)
     (spit (e/path collector-path "rcv.txt") csv)))
 
 

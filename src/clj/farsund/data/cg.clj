@@ -28,12 +28,12 @@
                (filter (fn [[_ ean]]
                          (not-empty ean)))
                (map (fn [[name ean qty buy-price price-1 price-2]]
-                     {ean {:name      (str/lower name)
-                           :ean       ean
-                           :stock     (Double/parseDouble qty)
-                           :buy-price (Double/parseDouble buy-price)
-                           :price-1   (Double/parseDouble price-1)
-                           :price-2   (Double/parseDouble price-2)}}))))))
+                      {ean {:name      (str/lower name)
+                            :ean       ean
+                            :stock     (Double/parseDouble qty)
+                            :buy-price (Double/parseDouble buy-price)
+                            :price-1   (Double/parseDouble price-1)
+                            :price-2   (Double/parseDouble price-2)}}))))))
 
 
 (defn read-cg-from-ftp [ftp-config]
@@ -103,18 +103,19 @@
   (let [data (clojure.string/split-lines edi)]
     (loop [[line & data] data
            result []
-           elem {}]
+           elem {}
+           n 0]
       (if line
         (cond
           (str/starts-with? line "[Poz")
-          (recur data (conj result elem) {})
+          (recur data (conj result (assoc elem :position (inc n))) {} (inc n))
           (str/starts-with? line "Symbol=")
           (let [ean (last (str/split line "="))]
-            (recur data result (assoc elem :ean ean)))
+            (recur data result (assoc elem :ean ean) n))
           (str/starts-with? line "Ilosc=")
           (let [qty (-> line (str/split "=") (last) Double/parseDouble)]
-            (recur data result (assoc elem :qty qty)))
-          :else (recur data result elem))
+            (recur data result (assoc elem :qty qty) n))
+          :else (recur data result elem n))
         (into {}
               (comp (filter seq)
                     (remove #(nil? (:qty %)))

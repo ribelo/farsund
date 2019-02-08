@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Leiningen: com.univocity/univocity-parsers:2.7.5">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/univocity/univocity-parsers/2.7.5/univocity-parsers-2.7.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

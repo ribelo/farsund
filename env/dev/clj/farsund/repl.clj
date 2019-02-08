@@ -31,7 +31,7 @@
             [farsund.ml.core :as ml]
             [farsund.ml.estimate :as estimate]
             [farsund.db :as db]
-            ;[farsund.firestore.core :as f]
+    ;[farsund.firestore.core :as f]
             ))
 
 
@@ -60,3 +60,8 @@
 
 
 (count (:market-report/by-id @tmp-db))
+
+(into (sorted-map-by (fn [{:keys [stock optimal]}]
+                       (- stock optimal)))
+      [{:stock 1 :optimal 0}
+       {:stock 1 :optimal 0}])
