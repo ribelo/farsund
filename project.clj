@@ -35,9 +35,7 @@
                  [com.taoensso/nippy "2.14.0"]
                  [com.github.haifengl/smile-core "1.5.2"]
                  [ribelo/visby "0.1.1-SNAPSHOT"]
-                 [ribelo/wombat "0.1.1-SNAPSHOT"]
-                 [tech.tablesaw/tablesaw-core "0.30.2"]
-                 [techascent/tech.ml-base "3.5"]]
+                 [ribelo/wombat "0.1.1-SNAPSHOT"]]
   ;:jvm-opts ["-server" "-Xmx1024m"]
   :source-paths ["src/clj"]
   :resource-paths ["resources"]
@@ -51,4 +49,6 @@
                        :uberjar-name "farsund.jar"}
              :prod    {:source-paths ["env/prod/clj"]}
              :dev     {:source-paths ["env/dev/clj"]
-                       :dependencies [[criterium "0.4.4"]]}})
+                       :dependencies [[criterium "0.4.4"]
+                                      [tech.tablesaw/tablesaw-core "0.30.2"]
+                                      [techascent/tech.ml-base "3.5"]]}})
