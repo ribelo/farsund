@@ -168,11 +168,7 @@
   (nippy/thaw-from-file (str "./ml_models/" id ".model")))
 
 
-(defn create-random-forest-model
-  [id [x y] & {:keys [max-nodes sampling-rates shrinkage]
-               :or   {max-nodes      5
-                      sampling-rates 0.7
-                      shrinkage      0.05}}]
+(defn create-random-forest-model [id [x y]]
   (timbre/info :create-model id)
   (let [trainer (RandomForest$Trainer. 500)]
     (doto trainer

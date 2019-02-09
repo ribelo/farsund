@@ -33,9 +33,10 @@
   (fn [_ {:keys [kind] :as e}]
     (when (not= kind :delete)
       (<!! (timeout 3000))
+      (println :report-handler)
       (let [report (future (report/read-file report-path))]
         (async/put! chan {:event :market-report/changed
-                          :data  report})
+                          :data  @report})
         (swap! db assoc :market-report/by-id @report)))))
 
 

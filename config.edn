@@ -7,8 +7,6 @@
  :pubsub/channel          {}
  :pubsub/publisher        {:chan  #ig/ref :pubsub/channel
                            :topic :event}
- ;226.25
- ;02
  :farsund/db              {}
  ;:farsund/firestore       {:credentials #ig/ref :firebase/credentials}
  :farsund/invoice-watcher {:chan              #ig/ref :pubsub/channel
