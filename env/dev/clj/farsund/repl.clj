@@ -42,7 +42,6 @@
 
 (declare tmp-db)
 (defn run [] (do (reset! system (ig/init config [:farsund/db
-                                                 ;:farsund/firestore
                                                  :pubsub/channel
                                                  :pubsub/publisher
                                                  :farsund/webserver
@@ -55,13 +54,9 @@
 (defn stop [] (ig/halt! @system))
 (defn reload [] (stop) (run))
 
+
 (run)
 (stop)
 
 
-(count (:market-report/by-id @tmp-db))
-
-(into (sorted-map-by (fn [{:keys [stock optimal]}]
-                       (- stock optimal)))
-      [{:stock 1 :optimal 0}
-       {:stock 1 :optimal 0}])
+(first (:invoices/by-id @tmp-db))

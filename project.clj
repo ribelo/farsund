@@ -1,4 +1,4 @@
-(defproject farsund "0.4.3-SNAPSHOT"
+(defproject farsund "0.4.5-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

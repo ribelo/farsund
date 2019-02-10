@@ -9,7 +9,7 @@
             [hawk.core :as hawk]
             [ribelo.wombat.io :as wio]
             [farsund.data.utils :refer :all]
-            ;[farsund.firestore.core :as fire]
+    ;[farsund.firestore.core :as fire]
             ))
 
 
@@ -19,9 +19,11 @@
       (let [id (second (str/split (.getName file) #"_|\."))
             modified (-> file (.lastModified) (dtc/from-long))
             products (->> (wio/read-csv file :sep ";" :encoding "cp1250")
-                          (mapv (fn [[^String ean ^String qty]]
-                                  {ean {:ean ean
-                                        :qty (Float/parseFloat qty)}})))]
+                          (into {}
+                                (map-indexed (fn [i [^String ean ^String qty]]
+                                               {ean {:ean      ean
+                                                     :qty      (Float/parseFloat qty)
+                                                     :position i}}))))]
         {:id       id
          :name     (.getName file)
          :time     modified

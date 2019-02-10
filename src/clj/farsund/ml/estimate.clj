@@ -35,15 +35,14 @@
                   (let [xy (ml/data->xy ml/model-ks :qty aggregated-data)
                         model (ml/create-random-forest-model id xy)]
                     (ml/save-model id model)
-                    (timbre/info id "send model to ml-estimator")
                     (>! ml-chan [product model aggregated-data]))
                   (catch Exception e
                     (timbre/error :error-create-model id)
-                    (timbre/info id "send product to avg-estimator")
+                    (ml/save-model id nil)
                     (>! avg-chan product)))
-                (let [model (ml/load-model id)]
-                  (timbre/info id "2 send model to ml-estimator")
-                  (>! ml-chan [product model aggregated-data]))))
+                (if-let [model (ml/load-model id)]
+                  (>! ml-chan [product model aggregated-data])
+                  (>! avg-chan product))))
             (do
               (timbre/info id "send product to avg-estimator")
               (>! avg-chan product))))

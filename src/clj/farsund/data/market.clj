@@ -61,7 +61,7 @@
                                                    (dt/minus (dt/today-at-midnight) (dt/days max-age-in-days)))]
                            (when (and to-old? delete-old-files?)
                              (io/delete-file %))
-                           to-old?))
+                           (not to-old?)))
                 (map #(let [{:keys [id] :as invoice} (invoice/read-file %)]
                         {id invoice})))
           files)))
@@ -76,7 +76,7 @@
         (let [{:keys [id] :as invoice} (invoice/read-file file)]
           (sp/setval [sp/ATOM :invoices/by-id id] invoice db)
           (async/put! chan {:event    :sente/send!
-                            :dispatch [:write-to [:market/documents :_invoices/by-id id] invoice]}))))))
+                            :dispatch [:write-to [:invoices :_documents/by-id id] invoice]}))))))
 
 
 (defmethod ig/init-key :farsund/invoice-watcher

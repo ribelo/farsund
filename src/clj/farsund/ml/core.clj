@@ -92,27 +92,27 @@
           (x/by-key :id (comp
                           (x/sort-by :date)
                           (x/partition 31 1 (x/transjuxt
-                                              {:id              (comp (map :id) x/last)
-                                               :category-id     (comp (map :category-id) x/last)
-                                               :date            (comp (map :date) x/last)
-                                               :promotion       (comp (map :promotion) x/last)
-                                               :qty             (comp (map :qty) x/last)
-                                               :mean-qty-3      (comp (x/drop-last) (x/take-last 3) (map :qty) stats/mean)
+                                              {:id            (comp (map :id) x/last)
+                                               :category-id   (comp (map :category-id) x/last)
+                                               :date          (comp (map :date) x/last)
+                                               :promotion     (comp (map :promotion) x/last)
+                                               :qty           (comp (map :qty) x/last)
+                                               :mean-qty-3    (comp (x/drop-last) (x/take-last 3) (map :qty) stats/mean)
                                                ;:median-qty-3    (comp (x/drop-last) (x/take-last 3) (map :qty) stats/median)
-                                               :mean-qty-7      (comp (x/drop-last) (x/take-last 7) (map :qty) stats/mean)
+                                               :mean-qty-7    (comp (x/drop-last) (x/take-last 7) (map :qty) stats/mean)
                                                ;:median-qty-7    (comp (x/drop-last) (x/take-last 7) (map :qty) stats/median)
-                                               :mean-qty-14     (comp (x/drop-last) (x/take-last 14) (map :qty) stats/mean)
+                                               :mean-qty-14   (comp (x/drop-last) (x/take-last 14) (map :qty) stats/mean)
                                                ;:median-qty-14   (comp (x/drop-last) (x/take-last 14) (map :qty) stats/median)
-                                               :mean-qty-30     (comp (x/drop-last) (x/take-last 30) (map :qty) stats/mean)
+                                               :mean-qty-30   (comp (x/drop-last) (x/take-last 30) (map :qty) stats/mean)
                                                ;:median-qty-30   (comp (x/drop-last) (x/take-last 30) (map :qty) stats/median)
-                                               :price           (comp (map :price) x/last)
-                                               :mean-price-3    (comp (x/drop-last) (x/take-last 3) (map :price) stats/mean)
+                                               :price         (comp (map :price) x/last)
+                                               :mean-price-3  (comp (x/drop-last) (x/take-last 3) (map :price) stats/mean)
                                                ;:median-price-3  (comp (x/drop-last) (x/take-last 3) (map :price) stats/median)
-                                               :mean-price-7    (comp (x/drop-last) (x/take-last 7) (map :price) stats/mean)
+                                               :mean-price-7  (comp (x/drop-last) (x/take-last 7) (map :price) stats/mean)
                                                ;:median-price-7  (comp (x/drop-last) (x/take-last 7) (map :price) stats/median)
-                                               :mean-price-14   (comp (x/drop-last) (x/take-last 14) (map :price) stats/mean)
+                                               :mean-price-14 (comp (x/drop-last) (x/take-last 14) (map :price) stats/mean)
                                                ;:median-price-14 (comp (x/drop-last) (x/take-last 14) (map :price) stats/median)
-                                               :mean-price-30   (comp (x/drop-last) (x/take-last 30) (map :price) stats/mean)
+                                               :mean-price-30 (comp (x/drop-last) (x/take-last 30) (map :price) stats/mean)
                                                ;:median-price-30 (comp (x/drop-last) (x/take-last 30) (map :price) stats/median)
                                                }))))
           (map second)
@@ -217,7 +217,8 @@
 
 
 (defn model-needs-refresh? [id]
-  (let [model (io/as-file (str "./ml_models/" id ".model"))]
+  (let [model (or (io/as-file (str "./ml_models/" id ".model"))
+                  (io/as-file (str "./ml_models/" id ".error")))]
     (if (.exists model)
       (let [modified (-> model (.lastModified) (dtc/from-long))]
         (dt/before? (dt/plus modified (dt/days 7)) (dt/now)))
