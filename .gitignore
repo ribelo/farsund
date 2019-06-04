@@ -12,3 +12,7 @@ pom.xml.asc
 /gbm_models
 /ml_models
 rcv.txt
+/.cpcahce
+/.idea
+.nrepl-port
+farsund.jar
