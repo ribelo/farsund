@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: ribelo/visby:0.1.1-SNAPSHOT">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/ribelo/visby/0.1.1-SNAPSHOT/visby-0.1.1-SNAPSHOT.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

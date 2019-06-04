@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: techascent/tech.resource:4.2">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/techascent/tech.resource/4.2/tech.resource-4.2.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

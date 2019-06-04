@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="Leiningen: duratom:0.4.1">
-    <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/duratom/duratom/0.4.1/duratom-0.4.1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
