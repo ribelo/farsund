@@ -33,7 +33,7 @@
             [farsund.db :as db]
     ;[farsund.firestore.core :as f]
             ))
-
+(+ 1 1)
 
 
 (timbre/merge-config! {:level :info})

@@ -3,17 +3,14 @@
  :market/report-path      "/home/ribelo/sync/schowek/rk/zamowienie.xls"
  :market/data-path        "/home/ribelo/s3-dane"
  :market/invoices-path    "/home/ribelo/s3-faktury"
- ;:firebase/credentials    "firebase_credentials.json"
  :pubsub/channel          {}
  :pubsub/publisher        {:chan  #ig/ref :pubsub/channel
                            :topic :event}
  :farsund/db              {}
- ;:farsund/firestore       {:credentials #ig/ref :firebase/credentials}
  :farsund/invoice-watcher {:chan              #ig/ref :pubsub/channel
                            :pub               #ig/ref :pubsub/publisher
                            :market-id         #ig/ref :market/id
                            :db                #ig/ref :farsund/db
-                           ;:firestore         #ig/ref :farsund/firestore
                            :max-age-in-days   7
                            :delete-old-files? false
                            :invoices-path     #ig/ref :market/invoices-path
@@ -22,7 +19,6 @@
                            :pub          #ig/ref :pubsub/publisher
                            :market-id    #ig/ref :market/id
                            :db           #ig/ref :farsund/db
-                           ;:firestore    #ig/ref :farsund/firestore
                            :days-to-read 180
                            :report-path  #ig/ref :market/report-path
                            :data-path    #ig/ref :market/data-path}
@@ -31,7 +27,6 @@
  :farsund/estimator       {:chan      #ig/ref :pubsub/channel
                            :pub       #ig/ref :pubsub/publisher
                            :market-id #ig/ref :market/id
-                           ;:firestore #ig/ref :farsund/firestore
                            :db        #ig/ref :farsund/db}
  :farsund/handler         {:routes #ig/ref :farsund/routes}
  :farsund/routes          {:db    #ig/ref :farsund/db
@@ -48,7 +43,7 @@
  :farsund/timbre          {:level :info}
  :farsund/ftp             {:address  "37.128.57.14"
                            :port     "21"
-                           :user     "sente"
-                           :password "xse45tgv"
+                           :user     "ftpsync"
+                           :password "cz37%232abdcdnstuff"
                            :out-path "s3-out"
                            :in-path  "s3-in"}}

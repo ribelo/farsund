@@ -1,26 +1,12 @@
 (ns farsund.ml.estimate
   (:require [clojure.core.async :as async :refer [go-loop <! >! timeout chan close!]]
-            [clojure.java.io :as io]
             [integrant.core :as ig]
             [taoensso.encore :as e]
-            [taoensso.nippy :as nippy]
-            [farsund.config :refer [config]]
-            [net.cgrand.xforms :as x]
-            [clj-time.core :as dt]
-            [clj-time.periodic :as dtper]
             [taoensso.timbre :as timbre]
-            [ribelo.visby.math :as math]
-            [ribelo.visby.emath :as emath]
-            [ribelo.visby.stats :as stats]
-            [ribelo.wombat.dataframe :as df]
-            [ribelo.wombat.aggregate :as agg]
-            [clj-time.periodic :as dtper]
-            [clj-time.coerce :as dtc]
             [com.rpl.specter :as sp]
             [farsund.ml.core :as ml]))
 
-
-(defn model-checker-loop [in-chan {:keys [pub db] :as params}]
+(defn model-checker-loop [in-chan {:keys [db]}]
   (timbre/info :init :model-checker-loop)
   (let [ml-chan (async/chan)
         avg-chan (async/chan)]
@@ -49,9 +35,7 @@
         (recur)))
     [ml-chan avg-chan]))
 
-
-
-(defn ml-estimator-loop [in-chan {:keys [db] :as params}]
+(defn ml-estimator-loop [in-chan {:keys [db]}]
   (timbre/info :init :ml-estimator-loop)
   (go-loop []
     (when-let [[{:keys [id optimal-supply]} model data] (<! in-chan)]
@@ -63,11 +47,10 @@
         (catch Exception e (timbre/error e)))
       (recur))))
 
-
-(defn avg-estimator-loop [in-chan {:keys [pub db] :as params}]
+(defn avg-estimator-loop [in-chan {:keys [db]}]
   (timbre/info :init :avg-estimator-loop)
   (go-loop []
-    (when-let [{:keys [id optimal-supply] :as product} (<! in-chan)]
+    (when-let [{:keys [id optimal-supply]} (<! in-chan)]
       (timbre/info :avg-estimator-loop id)
       (try
         (when-let [optimal (try (e/round2 (ml/average-sales id optimal-supply (:store-sales @db)))
@@ -76,7 +59,6 @@
           (sp/setval [sp/ATOM :market-report sp/ALL #(= id (:id %)) :optimal] optimal db))
         (catch Exception e (timbre/error e)))
       (recur))))
-
 
 (defmethod ig/init-key :farsund/estimator [_ {:keys [pub] :as params}]
   (timbre/info :ig/init-key :farsund/estimator)
@@ -88,7 +70,7 @@
     (async/sub pub :market-report/changed topic-chan)
     (go-loop []
       (when-let [{:keys [data]} (<! topic-chan)]
-        (doseq [[id product] data]
+        (doseq [[_ product] data]
           (timbre/info :farsund/estimator (:id product))
           (>! products-chan product))
         (recur)))
@@ -97,7 +79,6 @@
      :ml-estimator  ml-estimator
      :avg-chan      avg-chan
      :avg-estimator avg-estimator}))
-
 
 (defmethod ig/halt-key! :farsund/estimator [_ {:keys [products-chan ml-chan ml-estimator avg-chan avg-estimator]}]
   (close! products-chan)

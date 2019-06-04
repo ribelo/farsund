@@ -1,0 +1,38 @@
+{:paths   ["resources" "src/clj"]
+ :deps    {org.clojure/clojure                                  {:mvn/version "1.10.0"}
+           org.clojure/core.async                               {:mvn/version "0.4.490"}
+           org.clojure/tools.cli                                {:mvn/version "0.4.2"}
+           org.clojure/data.csv                                 {:mvn/version "0.1.4"}
+           org.clojure/tools.nrepl                              {:mvn/version "0.2.13"}
+           http-kit                                             {:mvn/version "2.4.0-alpha3"}
+           integrant                                            {:mvn/version "0.7.0"}
+           com.taoensso/encore                                  {:mvn/version "2.112.0"}
+           com.taoensso/sente                                   {:mvn/version "1.13.1"}
+           com.taoensso/nippy                                   {:mvn/version "2.14.0"}
+           com.taoensso/timbre                                  {:mvn/version "4.10.0"}
+           com.fzakaria/slf4j-timbre                            {:mvn/version "0.3.13"}
+           net.cgrand/xforms                                    {:mvn/version "0.19.0"}
+           metosin/reitit                                       {:mvn/version "0.3.7"}
+           metosin/muuntaja                                     {:mvn/version "0.6.4"}
+           metosin/ring-http-response                           {:mvn/version "0.9.0"}
+           com.fasterxml.jackson.core/jackson-core              {:mvn/version "2.9.6"}
+           com.fasterxml.jackson.datatype/jackson-datatype-joda {:mvn/version "2.9.6"}
+           ring/ring-core                                       {:mvn/version "1.7.1"}
+           ring/ring-defaults                                   {:mvn/version "0.3.2"}
+           clojure.java-time                                    {:mvn/version "0.3.2"}
+           com.velisco/clj-ftp                                  {:mvn/version "0.3.12"}
+           hawk                                                 {:mvn/version "0.2.11"}
+           funcool/cuerdas                                      {:mvn/version "2.2.0"}
+           com.github.haifengl/smile-core                       {:mvn/version "1.5.3"}
+           com.rpl/specter                                      {:mvn/version "1.1.2"}
+           dk.ative/docjure                                     {:mvn/version "1.13.0"}
+           noprompt/meander                                     {:git/url "https://github.com/noprompt/meander"
+                                                                 :sha     "76ddea07b7cd13bb6658ccbffee768936c9704f9"}
+           ribelo/visby                                         {:git/url "https://github.com/ribelo/visby"
+                                                                 :sha     "9b958dfa7b00a254312717fd025683941e283102"}
+           ribelo/wombat                                        {:git/url "https://github.com/ribelo/wombat"
+                                                                 :sha     "318dae7e9b99093115212951dec741f307944057"}
+           }
+ :aliases {:pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
+                                                :sha     "81b9e47d992b17aa3e3af1a47aed1f0287ebe9b8"}}
+                  :main-opts  ["-m"]}}}

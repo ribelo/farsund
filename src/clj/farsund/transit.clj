@@ -1,28 +1,29 @@
 (ns farsund.transit
   (:require [cognitect.transit :as t]
-            [clj-time.core :as dt]
-            [clj-time.coerce :as dtc])
+            [java-time :as jt])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
-           [org.joda.time DateTime]))
+           [java.time LocalDateTime]))
 
 
-(def joda-time-writer
+(def java-time-writer
   (t/write-handler
     (constantly "m")
-    (fn [v] (-> ^DateTime v .getMillis))
-    (fn [v] (-> ^DateTime v .getMillis .toString))))
+    (fn [v] (-> ^LocalDateTime v (jt/to-sql-timestamp) .getTime))
+    (fn [v] (-> ^LocalDateTime v (jt/to-sql-timestamp) .getTime .toString))))
 
 
-(def joda-time-reader
-  (t/read-handler (fn [v] (-> v Long/parseLong dtc/from-long))))
+(def java-time-reader
+  (t/read-handler (fn [v] (-> (Long/parseLong v)
+                              (jt/instant)
+                              (jt/local-date-time (jt/zone-id))))))
 
 
 (def write-handlers
-  {:handlers {DateTime joda-time-writer}})
+  {:handlers {LocalDateTime java-time-writer}})
 
 
 (def read-handlers
-  {:handlers {"m" joda-time-reader}})
+  {:handlers {"m" java-time-reader}})
 
 
 (defn ->json [v]
@@ -36,4 +37,4 @@
 (defn <-json [v]
   (let [in (ByteArrayInputStream. (.toByteArray v))]
     (t/read
-      (t/reader in :json read-handlers))))
+     (t/reader in :json read-handlers))))

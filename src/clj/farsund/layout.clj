@@ -17,9 +17,9 @@
   [:body {:style "height: 100%;"}
    [:div {:id    "app"
           :style "height: 100%;"}
-    "Loading App..."]
+    "It's runing!"]
    ;(page/include-css "/css/farsund.css")
-   (page/include-js "/js/app.js")
+   ;; (page/include-js "/js/app.js")
    ])
 
 (defn base-layout []
@@ -30,4 +30,3 @@
 
 (defn home-page []
   (base-layout))
-

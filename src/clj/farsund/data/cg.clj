@@ -1,40 +1,37 @@
 (ns farsund.data.cg
-  (:require [clojure.java.io :as io]
-            [integrant.core :as ig]
-            [taoensso.encore :as e]
-            [taoensso.timbre :as timbre]
-            [com.rpl.specter :as sp]
-            [dk.ative.docjure.spreadsheet :as xls]
-            [cuerdas.core :as str]
-            [clj-time.core :as dt]
-            [clj-time.format :as dtf]
-            [miner.ftp :as ftp]
-            [farsund.data.utils :refer :all]
-            [farsund.data.market :as market]
-            [farsund.config :refer [config]]))
-
+  (:require
+   [clojure.java.io :as io]
+   [integrant.core :as ig]
+   [taoensso.encore :as e]
+   [taoensso.timbre :as timbre]
+   [com.rpl.specter :as sp]
+   [dk.ative.docjure.spreadsheet :as xls]
+   [cuerdas.core :as str]
+   [java-time :as jt]
+   [miner.ftp :as ftp]
+   [farsund.data.utils :as u]
+   [farsund.data.market :as market]
+   [farsund.config :refer [config]]))
 
 (defn download-cg-warehouse [{:keys [address user password]}]
   (timbre/debug :download-cg-warehouse address user password)
-  (ftp/with-ftp [client (str "ftp://" user ":" password "@" address "/teas/cg")]
+  (ftp/with-ftp [client (str "ftp://" user ":" password "@" address "/ftpsync/cg")]
     (ftp/client-get client "mag.csv")))
 
-
 (defn read-cg-data [path]
-  (->> (read-csv-data path)
+  (->> (u/read-csv-data path)
        (rest)
        (into {}
              (comp
-               (filter (fn [[_ ean]]
-                         (not-empty ean)))
-               (map (fn [[name ean qty buy-price price-1 price-2]]
-                      {ean {:name      (str/lower name)
-                            :ean       ean
-                            :stock     (Double/parseDouble qty)
-                            :buy-price (Double/parseDouble buy-price)
-                            :price-1   (Double/parseDouble price-1)
-                            :price-2   (Double/parseDouble price-2)}}))))))
-
+              (filter (fn [[_ ean]]
+                        (not-empty ean)))
+              (map (fn [[name ean qty buy-price price-1 price-2]]
+                     {ean {:name      (str/lower name)
+                           :ean       ean
+                           :stock     (Double/parseDouble qty)
+                           :buy-price (Double/parseDouble buy-price)
+                           :price-1   (Double/parseDouble price-1)
+                           :price-2   (Double/parseDouble price-2)}}))))))
 
 (defn read-cg-from-ftp [ftp-config]
   (if (download-cg-warehouse ftp-config)
@@ -44,11 +41,11 @@
       data)
     []))
 
-
 (defmethod ig/init-key :farsund/cg [_ {:keys [db ftp] :as params}]
   (let [cg-warehouse (future (read-cg-from-ftp ftp))]
     (sp/setval [sp/ATOM :cg-warehouse/by-id] @cg-warehouse db)
     params))
+
 
 
 (defn edi-header []
@@ -60,21 +57,20 @@
        "Konto=BS 74-8658-0009-0000-4718-2000-0010\r\n"
        "Kod=59-500\r\n"
        "Miasto=Złotoryja\r\n"
-       "Data=" (dtf/unparse (dtf/formatter "YY.MM.dd") (dt/now)) "\r\n"
-       "Godz=" (dtf/unparse (dtf/formatter "HH:mm:ss") (dt/now)) "\r\n"
+       "Data=" (jt/format "YY.MM.dd" (jt/local-date-time)) "\r\n"
+       "Godz=" (jt/format "HH.mm.ss" (jt/local-date-time)) "\r\n"
        "\r\n"
        "\r\n"
        "[Dokument]\r\n"
-       "DataWyst=" (dtf/unparse (dtf/formatter "YY.MM.dd") (dt/now)) "\r\n"
+       "DataWyst=" (jt/format "YY.MM.dd" (jt/local-date-time)) "\r\n"
        "Odbiorca=1\r\n"
        "NrDok=\r\n"
-       "IdentyfikatorDok=" (Long/parseLong (dtf/unparse (dtf/formatter "YYMMddHHmmss") (dt/now))) "\r\n"
+       "IdentyfikatorDok=" (Long/parseLong (jt/format "YYMMddHHmmss" (jt/local-date-time))) "\r\n"
        "Magazyny=0\r\n"
        "\r\n"
        "\r\n"
        "[ZawartoscDokumentu]"
        "\r\n"))
-
 
 (defn document->edi [doc]
   (str/join "\r\n"
@@ -86,18 +82,16 @@
                                             "Mag=0\r\n"))))
                   doc)))
 
-
 (defn document->ftp [{:keys [out-path user password address]} doc]
   (let [data (str (edi-header) (document->edi doc))
-        file-name (str "./" (dtf/unparse (dtf/formatter "YYYY_MM_dd") (dt/now)) ".mm")]
+        file-name (str "./" (jt/format "YYYY_MM_dd" (jt/local-date-time)) ".mm")]
     (spit file-name data)
     (let [send? (ftp/with-ftp [client (str "ftp://" user ":" password
-                                           "@" address (str "/teas/" out-path))]
+                                           "@" address (str "/ftpsync/" out-path))]
                   (ftp/client-put client (io/as-file file-name)))]
       (when (.exists (io/as-file file-name))
         (io/delete-file (io/as-file file-name) true))
       send?)))
-
 
 (defn edi->document [edi]
   (let [data (clojure.string/split-lines edi)]
@@ -122,28 +116,24 @@
                     (map (juxt :ean identity)))
               result)))))
 
-
 (defn list-mm-files [{:keys [address user password in-path]}]
   (ftp/with-ftp [client (str "ftp://" user ":" password
-                             "@" address "/teas/" in-path)]
+                             "@" address "/ftpsync/" in-path)]
     (ftp/client-all-names client)))
-
 
 (defn download-mm [{:keys [address user password in-path]} file-name]
   (timbre/debug :download-mm address user password file-name)
   (ftp/with-ftp [client (str "ftp://" user ":" password
-                             "@" address "/teas/"
+                             "@" address "/ftpsync/"
                              in-path "/")]
     (ftp/client-get client file-name)))
-
 
 (defn delete-mm [{:keys [address user password in-path]} file-name]
   (timbre/debug :delete-mm address user password file-name)
   (ftp/with-ftp [client (str "ftp://" user ":" password
-                             "@" address "/teas/"
+                             "@" address "/ftpsync/"
                              in-path "/")]
     (ftp/client-delete client file-name)))
-
 
 (defn get-mm-from-ftp [ftp-config file-name]
   (if (download-mm ftp-config file-name)
@@ -153,4 +143,3 @@
         (io/delete-file (io/as-file (str "./" file-name)) true))
       data)
     []))
-

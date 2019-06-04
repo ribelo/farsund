@@ -1,36 +1,35 @@
 (ns farsund.data.market
-  (:require [clojure.java.io :as io]
-            [clojure.core.async :as async :refer [timeout <!! >! >!!]]
-            [integrant.core :as ig]
-            [taoensso.timbre :as timbre]
-            [clj-time.core :as dt]
-            [clj-time.coerce :as dtc]
-            [com.rpl.specter :as sp]
-            [hawk.core :as hawk]
-            [cuerdas.core :as str]
-            [farsund.data.sales :as sales]
-            [farsund.data.report :as report]
-            [farsund.data.invoice :as invoice]))
-
+  (:require
+   [clojure.java.io :as io]
+   [clojure.core.async :as async :refer [timeout <!! >! >!!]]
+   [integrant.core :as ig]
+   [taoensso.timbre :as timbre]
+   [java-time :as jt]
+   [com.rpl.specter :as sp]
+   [hawk.core :as hawk]
+   [farsund.data.sales :as sales]
+   [farsund.data.report :as report]
+   [farsund.data.invoice :as invoice]))
 
 (defn read-market-data [{:keys [market-id report-path data-path days-to-read]}]
-  (let [store-sales (future (sales/read-store-sales market-id
-                                                    (dt/minus (dt/today-at-midnight) (dt/days days-to-read))
-                                                    (dt/today-at-midnight)
-                                                    data-path))
-        sale-price (future (sales/read-sale-price market-id
-                                                  (dt/minus (dt/today-at-midnight) (dt/days days-to-read))
-                                                  (dt/today-at-midnight)
-                                                  data-path))
+  (let [store-sales (future (sales/read-store-sales
+                             market-id
+                             (jt/minus (jt/truncate-to (jt/local-date-time) :days) (jt/days days-to-read))
+                             (jt/truncate-to (jt/local-date-time) :days)
+                             data-path))
+        sale-price (future (sales/read-sale-price
+                            market-id
+                            (jt/minus (jt/truncate-to (jt/local-date-time) :days) (jt/days days-to-read))
+                            (jt/truncate-to (jt/local-date-time) :days)
+                            data-path))
         ;stock-data (future (stock/read-file market-id data-path))
         market-report (future (report/read-file report-path))]
     {:store-sales         (clojure.set/join @store-sales @sale-price)
      :market-report/by-id @market-report}))
 
-
 (defn- report-handler
-  [{:keys [db report-path chan] :as params}]
-  (fn [_ {:keys [kind] :as e}]
+  [{:keys [db report-path chan]}]
+  (fn [_ {:keys [kind]}]
     (when (not= kind :delete)
       (<!! (timeout 3000))
       (println :report-handler)
@@ -38,7 +37,6 @@
         (async/put! chan {:event :market-report/changed
                           :data  @report})
         (swap! db assoc :market-report/by-id @report)))))
-
 
 (defmethod ig/init-key :farsund/market-watcher
   [_ {:keys [db report-path chan] :as params}]
@@ -50,15 +48,17 @@
     (hawk/watch! [{:paths   [report-path]
                    :handler (report-handler params)}])))
 
-
 (defn- check-invoices-path [{:keys [invoices-path max-age-in-days delete-old-files? mask]}]
   (let [files (file-seq (io/as-file invoices-path))]
     (into {}
           (comp (filter #(.isFile %))
                 (filter #(re-find (re-pattern mask) (.getName %)))
-                (filter #(let [last-modified (-> % (.lastModified) (dtc/from-long))
-                               to-old? (dt/before? last-modified
-                                                   (dt/minus (dt/today-at-midnight) (dt/days max-age-in-days)))]
+                (filter #(let [last-modified (-> (.lastModified %)
+                                                 (jt/instant)
+                                                 (jt/local-date-time (jt/zone-id)))
+                               to-old? (jt/before? last-modified
+                                                   (jt/minus (jt/truncate-to (jt/local-date-time) :days)
+                                                             (jt/days max-age-in-days)))]
                            (when (and to-old? delete-old-files?)
                              (io/delete-file %))
                            (not to-old?)))
@@ -66,8 +66,7 @@
                         {id invoice})))
           files)))
 
-
-(defn- invoice-handler [{:keys [db chan mask] :as params}]
+(defn- invoice-handler [{:keys [db chan mask]}]
   (fn [_ {:keys [kind file]}]
     (when (and (not= kind :delete)
                (re-find (re-pattern mask) (.getName file)))
@@ -77,7 +76,6 @@
           (sp/setval [sp/ATOM :invoices/by-id id] invoice db)
           (async/put! chan {:event    :sente/send!
                             :dispatch [:write-to [:invoices :_documents/by-id id] invoice]}))))))
-
 
 (defmethod ig/init-key :farsund/invoice-watcher
   [_ {:keys [db invoices-path] :as params}]

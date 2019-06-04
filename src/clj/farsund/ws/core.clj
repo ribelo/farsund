@@ -3,41 +3,7 @@
             [integrant.core :as ig]
             [taoensso.sente :as sente]
             [taoensso.sente.packers.transit :as sente-transit]
-            [taoensso.sente.server-adapters.immutant :refer [get-sch-adapter]]
-            [taoensso.timbre :as timbre]
-            [farsund.transit :as t]
-            [farsund.ws.reponse :as response]))
-
-
-(defmulti event-msg-handler (fn [db {:keys [id]}] id))
-
-
-(defn -event-msg-handler
-  "Wraps `-event-msg-handler` with logging, error catching, etc."
-  [db {:as ev-msg :keys [id ?data event ?reply-fn]}]
-  (when (not= :chsk/ws-ping id)
-    (timbre/debug "try to handle event:" id ?data))
-  (thread
-    (try
-      (event-msg-handler db ev-msg)
-      (catch Exception e
-        (?reply-fn (response/internal-server-error id e))))))
-
-
-(defmethod event-msg-handler :default
-  [db {:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
-  (let [session (:session ring-req)
-        uid (:uid session)]
-    (timbre/warn "unhandled event: %s" event)
-    (when ?reply-fn
-      (?reply-fn {:umatched-event-as-echoed-from-from-server event}))))
-
-(ns farsund.ws.core
-  (:require [clojure.core.async :as async :refer [go thread go-loop <! >!]]
-            [integrant.core :as ig]
-            [taoensso.sente :as sente]
-            [taoensso.sente.packers.transit :as sente-transit]
-            [taoensso.sente.server-adapters.immutant :refer [get-sch-adapter]]
+            [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
             [taoensso.timbre :as timbre]
             [farsund.transit :as t]
             [farsund.ws.reponse :as response]))
