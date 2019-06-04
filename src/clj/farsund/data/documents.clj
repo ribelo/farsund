@@ -13,7 +13,7 @@
                       (str/join ","
                                 ["            "
                                  (str/pad ean {:length 13 :type :left})
-                                 (as-> (e/round2 qty) $
+                                 (as-> (e/round2 ^double qty) $
                                        (format "%.2f" $)
                                        (str/pad $ {:length 5 :type :right}))
                                  "     \r\n"])))))

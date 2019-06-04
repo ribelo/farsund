@@ -7,7 +7,7 @@
    [taoensso.timbre :as timbre]))
 
 (defn read-file
-  ([^String market-id date path]
+  ([^String market-id date ^String path]
    (timbre/debug :read-product-stock market-id date path)
    (let [date* (if (string? date) (jt/local-date "yyyy-MM-dd" date) date)
          date-str (jt/format "yyyy_MM_dd" date*)
@@ -15,13 +15,14 @@
          file (e/path path file-name)]
      (when (.exists (io/as-file file))
        (->> (wio/read-csv file :sep ";" :encoding "cp1250")
-            (mapv (fn [[_ pid ean _ _ stock purchase _ sales vat _ category-id]]
+            (mapv (fn [[_ pid ean _ _ ^String stock ^String purchase _
+                        ^String sales vat _ category-id]]
                     {:date           date-str
                      :ean            ean
                      :id             pid
                      :price          (e/round2 (/ (Double/parseDouble sales) (Double/parseDouble stock)))
                      :purchase-price (e/round2 (/ (Double/parseDouble purchase) (Double/parseDouble stock)))
                      :stock          (e/round2 (Double/parseDouble stock))}))))))
-  ([market-id path]
+  ([^String market-id ^String path]
    (let [date (-> (jt/local-date-time) (jt/minus (jt/days 1)))]
      (read-file market-id date path))))

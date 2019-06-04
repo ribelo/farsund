@@ -30,7 +30,8 @@
              (comp
                (filter #(identity (:id %)))
                (filter #(identity (:ean %)))
-               (map (fn [{:keys [sales profit volume ean] :as m}]
+               (map (fn [{:keys [^double sales ^double profit
+                                 ^double volume ^String ean] :as m}]
                       {ean (-> m
                                (update :name str/human)
                                (update :promotion str/trim)

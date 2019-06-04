@@ -11,7 +11,8 @@
    [farsund.data.report :as report]
    [farsund.data.invoice :as invoice]))
 
-(defn read-market-data [{:keys [market-id report-path data-path days-to-read]}]
+(defn read-market-data [{:keys [^String market-id ^String report-path
+                                ^String data-path ^long days-to-read]}]
   (let [store-sales (future (sales/read-store-sales
                              market-id
                              (jt/minus (jt/truncate-to (jt/local-date-time) :days) (jt/days days-to-read))
@@ -28,7 +29,7 @@
      :market-report/by-id @market-report}))
 
 (defn- report-handler
-  [{:keys [db report-path chan]}]
+  [{:keys [db ^String report-path chan]}]
   (fn [_ {:keys [kind]}]
     (when (not= kind :delete)
       (<!! (timeout 3000))
@@ -39,7 +40,7 @@
         (swap! db assoc :market-report/by-id @report)))))
 
 (defmethod ig/init-key :farsund/market-watcher
-  [_ {:keys [db report-path chan] :as params}]
+  [_ {:keys [db ^String report-path chan] :as params}]
   (timbre/info :ig/init-key :farsund/market-watcher)
   (let [market-data (read-market-data params)]
     (swap! db merge market-data)
@@ -48,7 +49,8 @@
     (hawk/watch! [{:paths   [report-path]
                    :handler (report-handler params)}])))
 
-(defn- check-invoices-path [{:keys [invoices-path max-age-in-days delete-old-files? mask]}]
+(defn- check-invoices-path [{:keys [^String invoices-path ^long max-age-in-days
+                                    ^boolean delete-old-files? ^String mask]}]
   (let [files (file-seq (io/as-file invoices-path))]
     (into {}
           (comp (filter #(.isFile %))
@@ -66,7 +68,7 @@
                         {id invoice})))
           files)))
 
-(defn- invoice-handler [{:keys [db chan mask]}]
+(defn- invoice-handler [{:keys [db chan ^String mask]}]
   (fn [_ {:keys [kind file]}]
     (when (and (not= kind :delete)
                (re-find (re-pattern mask) (.getName file)))
@@ -78,7 +80,7 @@
                             :dispatch [:write-to [:invoices :_documents/by-id id] invoice]}))))))
 
 (defmethod ig/init-key :farsund/invoice-watcher
-  [_ {:keys [db invoices-path] :as params}]
+  [_ {:keys [db ^String invoices-path] :as params}]
   (timbre/info :ig/init-key :farsund/invoice-watcher)
   (swap! db assoc :invoices/by-id (check-invoices-path params))
   (hawk/watch! [{:paths   [invoices-path]

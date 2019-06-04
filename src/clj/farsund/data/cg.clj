@@ -2,23 +2,19 @@
   (:require
    [clojure.java.io :as io]
    [integrant.core :as ig]
-   [taoensso.encore :as e]
    [taoensso.timbre :as timbre]
    [com.rpl.specter :as sp]
-   [dk.ative.docjure.spreadsheet :as xls]
    [cuerdas.core :as str]
    [java-time :as jt]
    [miner.ftp :as ftp]
-   [farsund.data.utils :as u]
-   [farsund.data.market :as market]
-   [farsund.config :refer [config]]))
+   [farsund.data.utils :as u]))
 
-(defn download-cg-warehouse [{:keys [address user password]}]
+(defn download-cg-warehouse [{:keys [^String address ^String user ^String password]}]
   (timbre/debug :download-cg-warehouse address user password)
   (ftp/with-ftp [client (str "ftp://" user ":" password "@" address "/ftpsync/cg")]
     (ftp/client-get client "mag.csv")))
 
-(defn read-cg-data [path]
+(defn read-cg-data [^String path]
   (->> (u/read-csv-data path)
        (rest)
        (into {}
@@ -82,7 +78,8 @@
                                             "Mag=0\r\n"))))
                   doc)))
 
-(defn document->ftp [{:keys [out-path user password address]} doc]
+(defn document->ftp [{:keys [^String out-path ^String user
+                             ^String password ^String address]} doc]
   (let [data (str (edi-header) (document->edi doc))
         file-name (str "./" (jt/format "YYYY_MM_dd" (jt/local-date-time)) ".mm")]
     (spit file-name data)
@@ -116,26 +113,31 @@
                     (map (juxt :ean identity)))
               result)))))
 
-(defn list-mm-files [{:keys [address user password in-path]}]
+(defn list-mm-files [{:keys [^String address ^String user
+                             ^String password ^String in-path]}]
   (ftp/with-ftp [client (str "ftp://" user ":" password
                              "@" address "/ftpsync/" in-path)]
     (ftp/client-all-names client)))
 
-(defn download-mm [{:keys [address user password in-path]} file-name]
+(defn download-mm [{:keys [^String address ^String user
+                           ^String password ^String in-path]}
+                   ^String file-name]
   (timbre/debug :download-mm address user password file-name)
   (ftp/with-ftp [client (str "ftp://" user ":" password
                              "@" address "/ftpsync/"
                              in-path "/")]
     (ftp/client-get client file-name)))
 
-(defn delete-mm [{:keys [address user password in-path]} file-name]
+(defn delete-mm [{:keys [^String address ^String  user ^String
+                         password ^String in-path]}
+                 ^String file-name]
   (timbre/debug :delete-mm address user password file-name)
   (ftp/with-ftp [client (str "ftp://" user ":" password
                              "@" address "/ftpsync/"
                              in-path "/")]
     (ftp/client-delete client file-name)))
 
-(defn get-mm-from-ftp [ftp-config file-name]
+(defn get-mm-from-ftp [ftp-config ^String file-name]
   (if (download-mm ftp-config file-name)
     (let [data (slurp (str "./" file-name) :encoding "cp1250")]
       (delete-mm ftp-config file-name)

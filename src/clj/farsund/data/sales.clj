@@ -13,7 +13,7 @@
 
 
 (defn read-sale-price
-  ([market-id date path]
+  ([^String market-id date ^String path]
    (timbre/debug :read-sale-price market-id date path)
    (let [date* (if (string? date) (jt/local-date "yyyy-MM-dd" date) date)
          date-str (jt/format "yyyy_MM_dd" date*)
@@ -25,14 +25,14 @@
                      :columns [nil nil nil nil :id
                                nil nil nil nil nil
                                nil nil nil nil :promotion]))))
-  ([market-id start end path]
+  ([^String market-id start end ^String path]
    (let [start* (if (string? start) (jt/local-date "yyyy-MM-dd" start) start)
          end* (if (string? end) ((jt/local-date "yyyy-MM-dd" end)) end)
          days (u/date-seq start* end*)]
      (x/into [] (mapcat #(read-sale-price market-id % path)) days))))
 
 (defn read-store-sales
-  ([market-id date path]
+  ([^String market-id date ^String path]
    (timbre/debug :read-store-sales market-id date path)
    (let [date* (if (string? date) (jt/local-date "yyyy-MM-dd" date) date)
          date-str (jt/format "yyyy_MM_dd" date*)
@@ -41,7 +41,9 @@
      (if (.exists (io/as-file file-path))
        (->> (wio/read-csv file-path :sep ";" :encoding "windows-1250")
             (x/into []
-                    (map (fn [[_ date ean _ id name _ _ category qty _ sales _ profit _ _ _ unit vat _ _ weight category-id]]
+                    (map (fn [[_ date ean _ id name _ _ category qty _
+                               ^String sales _ ^String profit _ _ _ unit
+                               vat _ _ weight category-id]]
                            {:date        date*
                             :ean         ean
                             :id          id
@@ -52,7 +54,7 @@
                             :sales       (Double/parseDouble sales)
                             :profit      (Double/parseDouble profit)}))))
        [])))
-  ([market-id start end path]
+  ([^String market-id start end ^String path]
    (let [start* (if (string? start) (jt/local-date "yyyy-MM-dd" start) start)
          end* (if (string? end) ((jt/local-date "yyyy-MM-dd" end)) end)
          days (u/date-seq start* end*)]
